@@ -1,0 +1,22 @@
+{
+    "sqltools.connections": [
+        {
+            "pgOptions": {
+                "ssl": {
+                    "requestCert": true,
+                    "rejectUnauthorized": false
+                }
+            },
+            "previewLimit": 50,
+            "server": "redshift-prod.bboxx-dwh.co.uk",
+            "port": 5439,
+            "driver": "Redshift Driver (Dedicated ver)",
+            "name": "bboxx",
+            "group": "group 1",
+            "database": "bboxx",
+            "username": "d_robert",
+            "password": "Qoi10ggvlw6C5V5l",
+            "connectionTimeout": 3000
+        }
+    ]
+}

@@ -1,0 +1,35 @@
+select distinct 
+	rpcl.unique_customer_id,
+	cpd.customer_name ,
+	split_part(cpd.customer_name, ' ', 1) as First_Name,
+	split_part(cpd.customer_name, ' ', 2) as Second_Name,
+	split_part(cpd.customer_name, ' ', 3) as Third_Name , 
+	cpd.customer_phone_1,
+	cpd.customer_phone_2,
+	cpd.customer_birth_date,
+	rpcl.country,
+	rpcl.region,
+	rpcl.shop,
+	c.customer_gender,
+	c.customer_national_id_type,
+	cpd.customer_national_id_number,
+	rpcl.customer_final_status,
+	rpcl.customer_active_start_date::DATE,
+	rpcl.customer_active_end_date::DATE,
+	rpcl.current_client_status,
+	rpcl.total_paid_to_date,
+	rpcl.outstanding_balance,
+	--rpcl.opt_out_recorded_date,
+	rpcl.opt_out_actual_date,
+	rpcl.opt_out_route,
+	c.current_payment_status,
+	cpd.home_address_4,
+	rpcl.total_contract_value ,
+	rpcl.consecutive_days_expired,
+	rpcl.last_top_up_amount,
+	rpcl.last_top_up_date 
+from kenya.rp_portfolio_customer_lookup rpcl left join kenya.customer c 
+on c.account_id  = rpcl.account_id  
+left join customer_personal_details cpd on cpd.account_id  = rpcl.account_id 
+where rpcl.current_client_status = 'lost' 
+--limit 10
