@@ -138,7 +138,7 @@ payments AS (
 main_query as (
 	SELECT
 		DISTINCT caller_id || customer_bxck || payment_date AS index_,
-		caller_id,
+		caller_id,c.call_time,
 		customer_bxck,
 		par_bucket ,
 		p.payment_date,

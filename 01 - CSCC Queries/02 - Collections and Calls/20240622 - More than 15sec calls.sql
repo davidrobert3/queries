@@ -1,5 +1,4 @@
 --add clear and conscience comments.
-
 WITH customer_phones AS 
 (
 SELECT 

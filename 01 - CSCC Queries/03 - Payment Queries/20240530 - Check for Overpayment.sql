@@ -6,9 +6,10 @@ WITH last_payment_date AS (
 		-- The unique customer account ID (BXCK)
 		MAX(ap.transaction_date) AS max_date -- The most recent payment date for the customer
 	FROM src_odoo13_kenya.account_payment ap -- Payment data table
-	WHERE ap.payg_account_id LIKE 'BXCK67928113' -- Search for payments by customer BXCK
+	WHERE --ap.payg_account_id LIKE 'BXCK67928113' -- Search for payments by customer BXCK
 		-- Uncomment the following line to search by a specific payment transaction reference
-		-- AND ap.transaction_reference LIKE 'SHC5RO456B'  
+		-- AND ap.transaction_reference LIKE 'SHC5RO456B'
+		ap.transaction_date >= '20240101'  
 	GROUP BY 1 -- Group by the customer account ID (BXCK)
 ) -----------------------------------------------------
 -- 2. Retrieve payment details for the customer based on the latest payment date.

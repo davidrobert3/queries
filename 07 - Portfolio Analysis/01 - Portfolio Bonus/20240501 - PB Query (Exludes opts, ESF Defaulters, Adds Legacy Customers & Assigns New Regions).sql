@@ -1,42 +1,33 @@
 -- Current Portfolio Bonus Query for Retail Monthly Payments (16th to 15th of every month)
 -- To get the Deposits 
 with downpayments as (
-	select
-		customer_id,
+	select customer_id,
 		unique_account_id,
 		sum(total_downpayment) as total_downpayment
-	from
-		kenya.rp_retail_sales
-	where
-		downpayment_date :: date >= current_date :: DATE - 180
-		and downpayment_date :: date <= current_date :: DATE
-	group by
-		1,
+	from kenya.rp_retail_sales
+	where downpayment_date::date >= current_date::DATE - 180
+		and downpayment_date::date <= current_date::DATE
+	group by 1,
 		2
 ),
 -- To get the Payments within the most recent 6 months (excluding DP)
 payments as (
-	select
-		payments.sales_order_id,
+	select payments.sales_order_id,
 		SUM(amount) - coalesce(downpayments.total_downpayment, 0) as repayments,
 		downpayments.total_downpayment
-	from
-		kenya.payment as payments
+	from kenya.payment as payments
 		left join downpayments as downpayments on downpayments.unique_account_id = payments.sales_order_id
 		left join kenya.customer as customer on customer.unique_account_id = payments.sales_order_id
-	where
-		payments.processing_status = 'posted'
+	where payments.processing_status = 'posted'
 		and payments.is_void = false
-		and payments.payment_utc_timestamp :: DATE >= current_date :: DATE - 180
-		and payments.payment_utc_timestamp :: DATE <= current_date :: DATE
-	group by
-		payments.sales_order_id,
+		and payments.payment_utc_timestamp::DATE >= current_date::DATE - 180
+		and payments.payment_utc_timestamp::DATE <= current_date::DATE
+	group by payments.sales_order_id,
 		downpayments.total_downpayment
 ),
 -- To get current active customers
 active as (
-	select
-		dcs.date_timestamp :: date as activity_date,
+	select dcs.date_timestamp::date as activity_date,
 		dcs.account_id,
 		details.customer_name,
 		details.customer_phone_1,
@@ -46,32 +37,29 @@ active as (
 		details.home_address_3 as constituency,
 		customer.unique_account_id,
 		dcs.consecutive_late_days,
-		dcs.expiry_timestamp :: date as expiry_date,
+		dcs.expiry_timestamp::date as expiry_date,
 		dcs.daily_rate,
 		dcs.total_left_to_pay,
 		customer.customer_active_end_date,
-		customer.customer_active_start_date :: text :: date as installation_date,
+		customer.customer_active_start_date::text::date as installation_date,
 		least(
 			(
 				(
-					current_date :: DATE - (customer.customer_active_start_date :: DATE + 7)
-				) :: BIGINT
+					current_date::DATE - (customer.customer_active_start_date::DATE + 7)
+				)::BIGINT
 			),
 			180
 		) as days_expected
-	from
-		kenya.daily_customer_snapshot dcs
+	from kenya.daily_customer_snapshot dcs
 		left join kenya.customer as customer on customer.account_id = dcs.account_id
 		left join kenya.customer_personal_details as details on details.account_id = customer.account_id
-	where
-		customer.customer_final_status is null
-		and dcs.date_timestamp :: DATE = current_date :: DATE
+	where customer.customer_final_status is null
+		and dcs.date_timestamp::DATE = current_date::DATE
 		and upper(details.customer_name) not like '%OPTED%'
 ),
 -- To get the collection rate for the last 6 months from current date 		
 collection_rate as (
-	select
-		active.activity_date,
+	select active.activity_date,
 		active.account_id,
 		active.customer_name,
 		active.customer_phone_1,
@@ -94,49 +82,39 @@ collection_rate as (
 		coalesce(repayments.repayments, 0) as six_month_repayments,
 		repayments.repayments / nullif((active.days_expected * active.daily_rate), 0) as six_month_collection_rate,
 		row_number() over (partition by active.unique_account_id) as row_numbers
-	from
-		active as active
+	from active as active
 		left join payments as repayments on repayments.sales_order_id = active.unique_account_id
 		left join kenya.rp_portfolio_customer_lookup as look on look.account_id = active.account_id
 ),
 -- Downpayments for the most recent 30 days 
 last_30_downpayments as (
-	select
-		customer_id,
+	select customer_id,
 		unique_account_id,
 		sum(total_downpayment) as total_downpayment
-	from
-		kenya.rp_retail_sales
-	where
-		downpayment_date :: date >= current_date :: DATE - 30
-		and downpayment_date :: date <= current_date :: DATE
-	group by
-		1,
+	from kenya.rp_retail_sales
+	where downpayment_date::date >= current_date::DATE - 30
+		and downpayment_date::date <= current_date::DATE
+	group by 1,
 		2
 ),
 -- To get the collection rate in the last 30 days
 last_30_day_CR as (
-	select
-		payments.sales_order_id,
+	select payments.sales_order_id,
 		sum(amount) - (
 			coalesce(last_30_downpayments.total_downpayment, 0)
 		) as payments
-	from
-		kenya.payment as payments
+	from kenya.payment as payments
 		left join last_30_downpayments as last_30_downpayments on last_30_downpayments.unique_account_id = payments.sales_order_id
-	where
-		payments.processing_status = 'posted'
+	where payments.processing_status = 'posted'
 		and payments.is_void = false
-		and payments.payment_utc_timestamp :: DATE >= current_date :: DATE - 30
-		and payments.payment_utc_timestamp :: DATE <= current_date :: DATE
-	group by
-		payments.sales_order_id,
+		and payments.payment_utc_timestamp::DATE >= current_date::DATE - 30
+		and payments.payment_utc_timestamp::DATE <= current_date::DATE
+	group by payments.sales_order_id,
 		last_30_downpayments.total_downpayment
 ),
 -- Combines the 30 day collection rate and the 60 day collection rate 
 dataset as (
-	select
-		collection_rate.activity_date,
+	select collection_rate.activity_date,
 		collection_rate.unique_account_id,
 		collection_rate.customer_name,
 		collection_rate.customer_phone_1,
@@ -162,14 +140,12 @@ dataset as (
 			when collection_rate.installation_date + 8 > collection_rate.activity_date then 'New Customer'
 			else 'Older Customer'
 		end as customer_age_tag
-	from
-		collection_rate as collection_rate
+	from collection_rate as collection_rate
 		left join last_30_day_CR as last_30_day_CR on last_30_day_CR.sales_order_id = collection_rate.unique_account_id
 ),
 -- Assigning customer segments 
 completedata as (
-	select
-		*,
+	select *,
 		case
 			when dataset.consecutive_late_days >= 0
 			and dataset.consecutive_late_days < 30
@@ -204,13 +180,11 @@ completedata as (
 			when dataset.customer_age_tag = 'New Customer' then 'New Customers'
 			else 'Unaccounted for bucket'
 		end as CustomerSegment
-	from
-		dataset as dataset
+	from dataset as dataset
 ),
 -- Assigns the Rewards and Penalties for PB Calcs
 data_with_bonuses as (
-	select
-		*,
+	select *,
 		case
 			when CustomerSegment = 'Good Payer' then 1.0 * daily_rate
 			else 0
@@ -227,13 +201,11 @@ data_with_bonuses as (
 			when CustomerSegment = 'Defaulted_60-119' then -14 * daily_rate
 			else 0
 		end as DefaulterPenalty
-	from
-		completedata
+	from completedata
 ),
 -- Labeling customers as good payers, slowpayers, late or defaulted 
 customer_categories as (
-	select
-		*,
+	select *,
 		LatePenalty + DefaulterPenalty as total_penalty,
 		GoodPayerReward + LatePenalty + DefaulterPenalty as actual_bonus,
 		case
@@ -252,13 +224,11 @@ customer_categories as (
 			when DefaulterPenalty < 0 then 1
 			else 0
 		end as DefaulterStatus
-	from
-		data_with_bonuses
+	from data_with_bonuses
 ),
 -- Customer Eligibility Criteria for PB bonus calculations 
 eligible_status as (
-	select
-		customer_categories.*,
+	select customer_categories.*,
 		case
 			when GoodPayerStatus = 1 then 1
 			when SlowPayerStatus = 1 then 1
@@ -266,12 +236,10 @@ eligible_status as (
 			when DefaulterStatus = 1 then 1
 			else 0
 		end as EligibleStatus
-	from
-		customer_categories
+	from customer_categories
 ),
 initial_data as (
-	select
-		eligible_status.*,
+	select eligible_status.*,
 		case
 			when EligibleStatus = 1 then 1.0 * daily_rate
 			else 0
@@ -286,8 +254,7 @@ initial_data as (
 			and consecutive_late_days < 30 then -7 * daily_rate
 			else 0
 		end as PrePenaltyPotentialPenalty
-	from
-		eligible_status
+	from eligible_status
 ),
 -- Feb 16th amendments to automate the excel filters
 -- 1. Identify the ESF Defaulters
@@ -296,20 +263,17 @@ initial_data as (
 -- Checking for any payments made by the free ontime customers 
 -- Adding filter columns to the initial data
 initial_data_with_filter_columns as (
-	select
-		*,
+	select *,
 		case
 			when daily_rate < 21
 			and consecutive_late_days > 59 then 1
 			else 0
 		end as esf_defaulters
-	from
-		initial_data
+	from initial_data
 ),
 -- Adding legacy repos 
 legacy_repos as (
-	select
-		current_date :: DATE :: DATE as activity_date,
+	select current_date::DATE::DATE as activity_date,
 		rpcl.unique_customer_id as unique_account_id,
 		null as customer_name,
 		null as customer_phone_1,
@@ -320,46 +284,43 @@ legacy_repos as (
 		fcs.daily_rate,
 		null as current_hardware_type,
 		rpcl.shop,
-		null :: int as total_left_to_pay,
-		null :: int as six_month_collection_rate,
-		rpcl.customer_active_end_date :: DATE,
-		null :: date as installation_date,
-		null :: int as six_month_repayments,
-		null :: int as last_30_day_repayments,
-		null :: int as days_expected,
-		null :: int as last_30_day_cr,
+		null::int as total_left_to_pay,
+		null::int as six_month_collection_rate,
+		rpcl.customer_active_end_date::DATE,
+		null::date as installation_date,
+		null::int as six_month_repayments,
+		null::int as last_30_day_repayments,
+		null::int as days_expected,
+		null::int as last_30_day_cr,
 		fcs.consecutive_late_days,
-		null :: date as expiry_date,
+		null::date as expiry_date,
 		null as tv_customer,
 		null as customer_age_tag,
 		null as customersegment,
 		(fcs.daily_rate * 14) as goodpayerreward,
-		null :: int as slowpayerlockedrewards,
-		null :: int as latepenalty,
-		null :: int as defaulterpenalty,
-		null :: int as total_penalty,
+		null::int as slowpayerlockedrewards,
+		null::int as latepenalty,
+		null::int as defaulterpenalty,
+		null::int as total_penalty,
 		(fcs.daily_rate * 14) as actual_bonus,
-		null :: int as goodpayerstatus,
-		null :: int as slowpayerstatus,
-		null :: int as latestatus,
-		null :: int as defaulterstatus,
-		null :: int as eligiblestatus,
-		null :: int as maxbonusamount,
-		null :: int as prepenaltystatus,
-		null :: int as prepenaltypotentialpenalty,
-		null :: int as esf_defaulters
-	from
-		kenya.rp_portfolio_customer_lookup rpcl
+		null::int as goodpayerstatus,
+		null::int as slowpayerstatus,
+		null::int as latestatus,
+		null::int as defaulterstatus,
+		null::int as eligiblestatus,
+		null::int as maxbonusamount,
+		null::int as prepenaltystatus,
+		null::int as prepenaltypotentialpenalty,
+		null::int as esf_defaulters
+	from kenya.rp_portfolio_customer_lookup rpcl
 		left join kenya.final_customer_snapshot fcs on rpcl.account_id = fcs.account_id
-	where
-		rpcl.customer_active_end_date >= '20240816'
-		and rpcl.customer_active_end_date <= current_date :: DATE - 1
+	where rpcl.customer_active_end_date >= '20240816'
+		and rpcl.customer_active_end_date <= current_date::DATE - 1
 		and rpcl.current_client_status = 'repo'
 		and --	    (
 		lower(rpcl.repo_technician) not like '%mabonga%' --or lower(rpcl.repo_technician) not like '%vincent koech%')
 		and fcs.consecutive_late_days >= 120
-	group by
-		1,
+	group by 1,
 		2,
 		3,
 		4,
@@ -391,25 +352,18 @@ legacy_repos as (
 		32
 ),
 full_data as (
-	select
-		*
-	from
-		initial_data_with_filter_columns
-	where
-		esf_defaulters = 0 -- Including free ontime customers who have made a payment
+	select *
+	from initial_data_with_filter_columns
+	where esf_defaulters = 0 -- Including free ontime customers who have made a payment
 		--	limit 5
-	union
-	all
-	select
-		*
-	from
-		legacy_repos
+	union all
+	select *
+	from legacy_repos
 ),
 ---------------------------------------------------
 -- New region assignment
 region_assignment as (
-	select
-		full_data.*,
+	select full_data.*,
 		case
 			when full_data.shop in ('Nakuru', 'Kabarnet', 'Isiolo', 'Muranga') then 'Central'
 			when full_data.shop in ('Kwale', 'Hola', 'Kilifi', 'Malindi') then 'Coast'
@@ -436,10 +390,7 @@ region_assignment as (
 			when full_data.shop in ('Butere', 'Bungoma', 'Luanda', 'Kakamega') then 'Western 1'
 			when full_data.shop in ('Bumala', 'Bondo', 'Busia', 'Siaya') then 'Western 2'
 		end as new_region
-	from
-		full_data
+	from full_data
 )
-select
-	*
-from
-	region_assignment
+select *
+from region_assignment

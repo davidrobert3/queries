@@ -1,6 +1,4 @@
-Add ckear and conscience comments
-
-
+--Add ckear and conscience comments
 WITH customer_phones AS 
 (
 SELECT 
@@ -99,6 +97,7 @@ payments AS (
 		sum AS Amount_Paid
 	FROM
 		cscc_collection_payments ccp
+--	where payment_date <= '20240907'
 ),
 main_query as (
 	SELECT

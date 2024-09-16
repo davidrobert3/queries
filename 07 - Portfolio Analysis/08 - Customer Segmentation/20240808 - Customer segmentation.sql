@@ -1,9 +1,9 @@
 -- Daily PAR Distribution
 SELECT distinct 
---	dcs.date_timestamp::DATE || ' - ' || dcs.payg_account_id as index_,
+	dcs.date_timestamp::DATE || ' - ' || dcs.payg_account_id as index_,
     dcs.date_timestamp::DATE,
-    rpcl.shop, 
---    dcs.payg_account_id ,
+--    rpcl.shop, 
+    dcs.payg_account_id ,
     CASE 
         WHEN dcs.consecutive_late_days = 0
             THEN '1. PAR 0'
