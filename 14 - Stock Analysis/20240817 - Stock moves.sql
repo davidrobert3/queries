@@ -39,4 +39,4 @@ left join src_odoo13_kenya.res_users ru2 on
 left join src_odoo13_kenya.stock_picking_type spt on
 	sp.picking_type_id = spt.id
 where sm.create_date::Date >= '20240729'
---limit 200
+limit 200
