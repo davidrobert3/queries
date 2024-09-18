@@ -115,7 +115,7 @@ FROM
 WHERE
     c.customer_active_end_date IS NOT NULL
     AND c.current_customer_status NOT LIKE 'finished'
-    AND c.customer_active_end_date >= '2024-01-01'
+    AND c.customer_active_end_date >= '2024-08-16'
 ),
    labeled_repos as (
   select 

@@ -1,9 +1,9 @@
 -- Daily PAR Distribution
 SELECT distinct 
-	dcs.date_timestamp::DATE || ' - ' || dcs.payg_account_id as index_,
+--	dcs.date_timestamp::DATE || ' - ' || dcs.payg_account_id as index_,
     dcs.date_timestamp::DATE,
---    rpcl.shop, 
-    dcs.payg_account_id ,
+    rpcl.shop, 
+--    dcs.payg_account_id ,
     CASE 
         WHEN dcs.consecutive_late_days = 0
             THEN '1. PAR 0'
@@ -24,6 +24,6 @@ FROM kenya.daily_customer_snapshot dcs
     LEFT JOIN kenya.rp_portfolio_customer_lookup rpcl 
         ON rpcl.unique_customer_id = dcs.payg_account_id 
 WHERE 
-    dcs.date_timestamp::DATE >= '20240823'
+    dcs.date_timestamp::DATE >= '20240907'
 GROUP BY 
-    1,2,3,4
+    1,2,3

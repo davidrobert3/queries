@@ -9,7 +9,7 @@ left join
 	dcs.organisation_id = o.organisation_id
 where
 	dcs.customer_status = 'active'
-	and dcs.date_timestamp::DATE = '20240717'
+	and dcs.date_timestamp::DATE = '20240817'
 group by
 	o.shop_name
 ),

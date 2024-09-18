@@ -314,7 +314,7 @@ legacy_repos as (
 		null::int as esf_defaulters
 	from kenya.rp_portfolio_customer_lookup rpcl
 		left join kenya.final_customer_snapshot fcs on rpcl.account_id = fcs.account_id
-	where rpcl.customer_active_end_date >= '20240816'
+	where rpcl.customer_active_end_date >= '20240916'
 		and rpcl.customer_active_end_date <= current_date::DATE - 1
 		and rpcl.current_client_status = 'repo'
 		and --	    (
