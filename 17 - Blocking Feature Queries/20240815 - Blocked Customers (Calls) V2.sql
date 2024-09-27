@@ -104,8 +104,8 @@ call_log_data AS (
 			'Quenter Akoth (040)'
 		)
 		AND talking >= '00:00:15' -- Minimum call duration
-		AND call_time::DATE >= '2024-08-14' -- Filter start date
-		AND call_time::DATE <= '2024-09-04' -- Filter end date
+		AND call_time::DATE >= '2024-09-04' -- Filter start date
+		AND call_time::DATE <= '2024-09-24' -- Filter end date
 	GROUP BY 1,
 		2,
 		3,

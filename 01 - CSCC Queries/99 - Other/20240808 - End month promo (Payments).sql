@@ -30,6 +30,5 @@ WHERE p.payment_utc_timestamp::DATE >= '2024-07-19'
 	AND p.is_void IS FALSE
 	AND p.is_bonus IS FALSE
 	AND p.is_refunded IS FALSE
-	AND p.is_down_payment IS FALSE -- Exclude payments with draft or unmatched reconciliation status
 	AND p.processing_status !~ 'draft'
 	AND p.reconciliation_status !~ 'unmatched'

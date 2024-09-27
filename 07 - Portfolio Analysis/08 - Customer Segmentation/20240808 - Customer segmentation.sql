@@ -24,6 +24,6 @@ FROM kenya.daily_customer_snapshot dcs
     LEFT JOIN kenya.rp_portfolio_customer_lookup rpcl 
         ON rpcl.unique_customer_id = dcs.payg_account_id 
 WHERE 
-    dcs.date_timestamp::DATE >= '20240907'
+    dcs.date_timestamp::DATE >= '20240817'
 GROUP BY 
     1,2,3
