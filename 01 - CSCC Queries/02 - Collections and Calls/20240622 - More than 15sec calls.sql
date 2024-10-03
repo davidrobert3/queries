@@ -11,7 +11,7 @@ LEFT JOIN cscc_customer_alt_phones ccap ON
 	ccp.unique_customer_id = ccap.payg_account_id
 			WHERE ccp.unique_customer_id IN (SELECT unique_account_id
 FROM cscc_call_list ccl  
-WHERE month_ = 9 --or 
+WHERE month_ = 10 --or 
 --month_ = 8
 )
 GROUP BY 1,2,3
@@ -53,8 +53,8 @@ call_log_data AS (
 			'Quenter Akoth (040)'
 		)
 		AND talking >= '00:00:15'
-		AND call_time::DATE >= '2024-09-01'
-		AND call_time::DATE <= '2024-09-30'
+		AND call_time::DATE >= '2024-10-01'
+		AND call_time::DATE <= '2024-10-31'
 	GROUP BY
 		1,
 		2,

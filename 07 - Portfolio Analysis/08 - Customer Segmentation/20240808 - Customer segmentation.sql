@@ -1,8 +1,8 @@
 -- Daily PAR Distribution
 SELECT distinct 
 --	dcs.date_timestamp::DATE || ' - ' || dcs.payg_account_id as index_,
-    dcs.date_timestamp::DATE,
-    rpcl.shop, 
+    date_trunc('month',dcs.date_timestamp::DATE)::DATE as month,
+--    rpcl.shop, 
 --    dcs.payg_account_id ,
     CASE 
         WHEN dcs.consecutive_late_days = 0
@@ -24,6 +24,6 @@ FROM kenya.daily_customer_snapshot dcs
     LEFT JOIN kenya.rp_portfolio_customer_lookup rpcl 
         ON rpcl.unique_customer_id = dcs.payg_account_id 
 WHERE 
-    dcs.date_timestamp::DATE >= '20240817'
+    dcs.date_timestamp::DATE >= '20240101' and dcs.payment_status <> 'inactive' and dcs.date_timestamp::DATE = date_trunc('month',dcs.date_timestamp::DATE)::DATE
 GROUP BY 
-    1,2,3
+    1,2

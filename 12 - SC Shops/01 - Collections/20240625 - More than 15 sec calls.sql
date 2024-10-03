@@ -10,7 +10,7 @@ LEFT JOIN cscc_customer_alt_phones ccap ON
 	ccp.unique_customer_id = ccap.payg_account_id
 WHERE ccp.unique_customer_id IN (SELECT unique_account_id
 FROM cscc_call_list ccl 
-WHERE month_ = 9
+WHERE month_ = 10
 )
 GROUP BY 1,2,3
 ),
@@ -22,7 +22,7 @@ customer_par as
 	FROM customer_phones cp
 	left JOIN cscc_call_list ccl ON
 		cp.unique_customer_id = ccl.unique_account_id
-	WHERE month_ = 9
+	WHERE month_ = 10
 ),
 -----------------------------------------------------
 -- 1. get all calls made to customers by the collections team.
@@ -88,8 +88,8 @@ call_log_data AS (
 			'Joseph Wambua (157)'
 		)
 		AND talking >= '00:00:15'
-		AND call_time :: DATE >= '2024-09-01'
-		AND call_time :: DATE <= '2024-09-30'
+		AND call_time :: DATE >= '2024-10-01'
+		AND call_time :: DATE <= '2024-10-31'
 	GROUP BY
 		1,
 		2,
