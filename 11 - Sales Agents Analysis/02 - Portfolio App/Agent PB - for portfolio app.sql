@@ -64,8 +64,8 @@ active AS (
         details.customer_phone_2,
         details.home_address_4 AS locations,
         details.home_address_3 AS constituency,
-        customer.location_customer_met_latitude,
-        customer.location_customer_met_longitude,
+        cpd.location_customer_met_latitude,
+        cpd.location_customer_met_longitude,
         customer.location_customer_met_accuracy,
         customer.unique_account_id,
         today.consecutive_late_days,
@@ -86,6 +86,7 @@ active AS (
     FROM
         kenya.agg_dcs_today AS today
         LEFT JOIN kenya.customer AS customer ON customer.account_id = today.account_id
+        left join kenya.customer_personal_details as cpd on cpd.account_id = today.account_id
         LEFT JOIN sales_details AS sales_details ON sales_details.unique_account_id = customer.unique_account_id
         LEFT JOIN kenya.customer_personal_details AS details ON details.account_id = customer.account_id
     WHERE
@@ -258,7 +259,8 @@ SELECT
         ELSE 0
     END AS eligible
 FROM
-    dataset AS dataset -- WHERE
+    dataset AS dataset 
+    where installation_date::DATE is not null 
     --    dataset.unique_account_id = 'BXCK72601546'
     --------------------------------------------------------------------
     --  END
